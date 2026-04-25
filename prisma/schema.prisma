@@ -1,0 +1,68 @@
+model User {
+  id       Int     @id @default(autoincrement())
+  email    String  @unique
+  password String
+  roleId   Int
+  role     Role    @relation(fields: [roleId], references: [id])
+  orders   Order[]
+  tickets  Ticket[]
+}
+
+model Role {
+  id    Int     @id @default(autoincrement())
+  name  String  @unique
+  users User[]
+}
+
+model Supplier {
+  id       Int     @id @default(autoincrement())
+  name     String
+  email    String  @unique
+  phone    String
+  products Product[]
+}
+
+model Product {
+  id          Int       @id @default(autoincrement())
+  name        String
+  price       Float
+  stock       Int
+  supplierId  Int
+  supplier    Supplier  @relation(fields: [supplierId], references: [id])
+  orderItems  OrderItem[]
+}
+
+model Order {
+  id        Int         @id @default(autoincrement())
+  date      DateTime    @default(now())
+  userId    Int
+  user      User        @relation(fields: [userId], references: [id])
+  items     OrderItem[]
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  quantity  Int
+  price     Float
+  order     Order   @relation(fields: [orderId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model Ticket {
+  id        Int       @id @default(autoincrement())
+  type      String
+  message   String
+  createdAt DateTime  @default(now())
+  userId    Int
+  user      User      @relation(fields: [userId], references: [id])
+}
+
+generator client {
+  provider      = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
