@@ -12,7 +12,7 @@ export class CreateSupplierDto {
     @IsEmail()
     email!: string;
 
-    @ApiProperty({ example: '123456789', required: false })
+    @ApiProperty({ example: '123456789'})
     @IsNotEmpty()
     @IsString()
     phone!: string;
