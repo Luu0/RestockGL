@@ -60,13 +60,3 @@ export class ProductsService {
         });
     }
 }
-
-// async update(id: number, updateProductDto: UpdateProductDto) {
-//   try {
-//     return await this.prisma.product.update({
-//       where: { id },
-//       data: updateProductDto
-//     });
-//   } catch (error) {
-//     throw new NotFoundException('Product not found');
-//   }
