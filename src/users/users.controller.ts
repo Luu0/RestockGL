@@ -23,7 +23,6 @@ export class UsersController {
     return this.usersService.create(body);
   }
 
-  // 🟢 GET ALL USERS
   @ApiOperation({ summary: 'Obtener todos los usuarios' })
   @ApiResponse({ status: 200, description: 'Lista de usuarios' })
   @Get()

@@ -1,5 +1,6 @@
-import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, UseGuards, Req} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
+import { Request } from 'express';
 
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -16,8 +17,11 @@ export class OrdersController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() body: CreateOrderDto) {
-    return this.ordersService.create(body);
+  create(
+      @Body() body: CreateOrderDto,
+      @Req() req: Request
+    ) {
+    return this.ordersService.create(body, req.user);
   }
 
   @ApiOperation({ summary: 'Listar órdenes' })

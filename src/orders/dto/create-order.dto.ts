@@ -13,10 +13,6 @@ class OrderItemDto {
     }
 
 export class CreateOrderDto {
-    @ApiProperty({ example: 1 })
-    @IsInt()
-    userId!: number;
-
     @ApiProperty({ type: [OrderItemDto] })
     @IsArray()
     items!: OrderItemDto[];
