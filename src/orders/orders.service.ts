@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { Prisma } from '@prisma/client';
+import { OrderStatus, Prisma } from '@prisma/client';
 
 @Injectable()
 export class OrdersService {
@@ -104,6 +104,10 @@ export class OrdersService {
         throw new NotFoundException('Orden no encontrada');
       }
 
+      if (order.status === 'CANCELADO') {
+        throw new BadRequestException('La orden ya está cancelada');
+      }
+
       for (const item of order.items) {
         await tx.product.update({
           where: { id: item.productId },
@@ -115,13 +119,39 @@ export class OrdersService {
         });
       }
 
-      await tx.orderItem.deleteMany({
-        where: { orderId: id },
-      });
-
-      return tx.order.delete({
+      return tx.order.update({
         where: { id },
+        data: {
+          status: 'CANCELADO',
+        },
+        include: {
+          items: true,
+        },
       });
+    });
+  }
+
+  async updateStatus(id: number, status: OrderStatus) {
+    return this.prisma.order.update({
+      where: { id },
+      data: {
+        status,
+      },
+    });
+  }
+
+  async findMyOrders(userId: number) {
+    return this.prisma.order.findMany({
+      where: {
+        userId,
+      },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
     });
   }
 }

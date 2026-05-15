@@ -32,13 +32,22 @@ model Product {
   orderItems OrderItem[]
 }
 
+
+enum OrderStatus {
+  PENDIENTE
+  COMPLETADO
+  CANCELADO
+  REEMBOLSADO
+}
+
 model Order {
-  id             Int             @id @default(autoincrement())
-  date           DateTime        @default(now())
-  userId         Int
-  user           User            @relation(fields: [userId], references: [id])
-  items          OrderItem[]
-  total          Float           @default(0)
+  id        Int          @id @default(autoincrement())
+  date      DateTime     @default(now())
+  status    OrderStatus  @default(PENDIENTE)
+  total     Float
+  userId    Int
+  user      User         @relation(fields: [userId], references: [id])
+  items     OrderItem[]
   supportTickets SupportTicket[]
 }
 
