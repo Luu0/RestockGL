@@ -3,6 +3,11 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderStatus, Prisma } from '@prisma/client';
 
+import { buildMeta } from 'src/common/utils/meta';
+import { getPagination } from 'src/common/utils/pagination';
+import { buildSort } from 'src/common/utils/sort';
+import { OrdersQueryDto } from './dto/orders-query.dto';
+
 @Injectable()
 export class OrdersService {
   constructor(private prisma: PrismaService) {}
@@ -62,15 +67,53 @@ export class OrdersService {
     });
   }
 
-  findAll() {
-    return this.prisma.order.findMany({
+  async findAll(query: OrdersQueryDto) {
+
+    const pagination = getPagination(
+      query.page,
+      query.limit,
+    );
+
+    const orderBy = buildSort(
+      'createdAt',
+      query.sort,
+    );
+
+    const where = query.status
+      ? {
+          status: query.status,
+        }
+      : {};
+
+    const orders = await this.prisma.order.findMany({
+      ...pagination,
+      where,
+      orderBy,
+
       include: {
         items: {
-          include: { product: true },
+          include: {
+            product: true,
+          },
         },
+
         user: true,
       },
     });
+
+    const total = await this.prisma.order.count({
+      where,
+    });
+
+    return {
+      data: orders,
+
+      meta: buildMeta(
+        total,
+        query.page,
+        query.limit,
+      ),
+    };
   }
 
   async findOne(id: number) {

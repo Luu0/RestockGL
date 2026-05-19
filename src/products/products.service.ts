@@ -2,6 +2,12 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { PaginationDto } from 'src/common/pagination.dto';
+import { ProductsQueryDto } from './dto/productsquery.dto';
+import { getPagination } from 'src/common/utils/pagination';
+import { buildSearch } from 'src/common/utils/search';
+import { buildSort } from 'src/common/utils/sort';
+import { buildMeta } from 'src/common/utils/meta';
 
 
 @Injectable()
@@ -23,10 +29,45 @@ export class ProductsService {
         });
     }
 
-    findAll() {
-        return this.prisma.product.findMany({
-        include: { supplier: true },
+    async findAll(query: ProductsQueryDto) {
+
+        const pagination = getPagination(
+            query.page,
+            query.limit,
+        );
+
+        const where = buildSearch(
+            query.search,
+            ['name'],
+        );
+
+        const orderBy = buildSort(
+            'price',
+            query.sort,
+        );
+
+        const products = await this.prisma.product.findMany({
+            ...pagination,
+            where,
+            orderBy,
+
+            include: {
+            supplier: true,
+            },
         });
+
+        const total = await this.prisma.product.count({
+            where,
+        });
+
+        return {
+            data: products,
+            meta: buildMeta(
+            total,
+            query.page,
+            query.limit,
+            ),
+        };
     }
 
     async findOne(id: number) {

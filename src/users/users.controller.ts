@@ -1,4 +1,4 @@
-import {Body, Controller, Delete, Get, Param, Patch, Post, UseGuards} from '@nestjs/common';
+import {Body, Controller, Delete, Get, Param, Patch, Post, UseGuards, Query} from '@nestjs/common';
 import {ApiTags, ApiOperation, ApiResponse, ApiBearerAuth,ApiParam} from '@nestjs/swagger';
 
 import { UsersService } from './users.service';
@@ -8,6 +8,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from 'src/auth/common/jwt-auth.guard';
 import { RolesGuard } from 'src/common/roles.guard';
 import { Roles } from 'src/common/roles.decorator';
+import { UsersQueryDto } from './dto/product-query.dto';
 
 
 @ApiTags('Users')
@@ -26,8 +27,8 @@ export class UsersController {
   @ApiOperation({ summary: 'Obtener todos los usuarios' })
   @ApiResponse({ status: 200, description: 'Lista de usuarios' })
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  findAll(@Query() query: UsersQueryDto) {
+    return this.usersService.findAll(query);
   }
 
   @ApiOperation({ summary: 'Obtener un usuario por ID' })

@@ -3,6 +3,11 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
+import { buildMeta } from 'src/common/utils/meta';
+import { buildSort } from 'src/common/utils/sort';
+import { getPagination } from 'src/common/utils/pagination';
+import { UsersQueryDto } from './dto/product-query.dto';
+import { buildSearch } from 'src/common/utils/search';
 
 @Injectable()
 export class UsersService {
@@ -28,10 +33,45 @@ export class UsersService {
     });
   }
 
-  findAll() {
-    return this.prisma.user.findMany({
-      include: { role: true },
+  async findAll(query: UsersQueryDto) {
+
+    const pagination = getPagination(
+      query.page,
+      query.limit,
+    );
+
+    const where = buildSearch(
+      query.search,
+      ['email'],
+    );
+
+    const orderBy = buildSort(
+      'email',
+      query.sort,
+    );
+
+    const users = await this.prisma.user.findMany({
+      ...pagination,
+      where,
+      orderBy,
+
+      include: {
+        role: true,
+      },
     });
+
+    const total = await this.prisma.user.count({
+      where,
+    });
+
+    return {
+      data: users,
+      meta: buildMeta(
+        total,
+        query.page,
+        query.limit,
+      ),
+    };
   }
 
   findByEmail(email: string) {
@@ -59,7 +99,6 @@ export class UsersService {
       throw error;
     }
   }
-
 
   async remove(id: number) {
     const adminRole = await this.prisma.role.findUnique({

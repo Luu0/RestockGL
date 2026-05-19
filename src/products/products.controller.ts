@@ -1,4 +1,4 @@
-import {Body, Controller, Delete, Get, Param, Patch, Post, UseGuards} from '@nestjs/common';
+import {Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards} from '@nestjs/common';
 import {ApiTags, ApiOperation, ApiResponse, ApiBearerAuth,ApiParam} from '@nestjs/swagger';
 
 import { ProductsService } from './products.service';
@@ -8,6 +8,8 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { JwtAuthGuard } from 'src/auth/common/jwt-auth.guard';
 import { RolesGuard } from 'src/common/roles.guard';
 import { Roles } from 'src/common/roles.decorator';
+// import { PaginationDto } from 'src/common/pagination.dto';
+import { ProductsQueryDto } from './dto/productsquery.dto';
 
 
 @ApiTags('Products')
@@ -26,9 +28,10 @@ export class ProductsController {
 
     @ApiOperation({ summary: 'Obtener todos los productos' })
     @Get()
-    findAll() {
-        return this.productsService.findAll();
+    findAll(@Query() query: ProductsQueryDto) {
+    return this.productsService.findAll(query);
     }
+
 
     @ApiOperation({ summary: 'Obtener producto por ID' })
     @ApiParam({ name: 'id', example: 1 })
