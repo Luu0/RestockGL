@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsInt, Min } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsArray, IsInt, Min, ValidateNested } from 'class-validator';
 
 class OrderItemDto {
     @ApiProperty({ example: 1 })
@@ -15,5 +16,7 @@ class OrderItemDto {
 export class CreateOrderDto {
     @ApiProperty({ type: [OrderItemDto] })
     @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => OrderItemDto)
     items!: OrderItemDto[];
 }

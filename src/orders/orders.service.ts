@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderStatus, Prisma } from '@prisma/client';
@@ -126,7 +126,7 @@ export class OrdersService {
       user: true,
     },
     });
-
+    
     if (!order) {
     throw new NotFoundException('Orden no encontrada');
     }
@@ -135,25 +135,46 @@ export class OrdersService {
   }
 
 
-  async cancel(id: number) {
+  async cancel(id: number, user: any) {
+
     return this.prisma.$transaction(async (tx) => {
 
       const order = await tx.order.findUnique({
         where: { id },
-        include: { items: true },
+
+        include: {
+          items: true,
+        },
       });
 
       if (!order) {
-        throw new NotFoundException('Orden no encontrada');
+        throw new NotFoundException(
+          'Orden no encontrada',
+        );
+      }
+
+      if (
+        order.userId !== user.sub &&
+        user.role !== 'admin'
+      ) {
+        throw new ForbiddenException(
+          'No puedes cancelar esta orden',
+        );
       }
 
       if (order.status === 'CANCELADO') {
-        throw new BadRequestException('La orden ya está cancelada');
+        throw new BadRequestException(
+          'La orden ya está cancelada',
+        );
       }
 
       for (const item of order.items) {
+
         await tx.product.update({
-          where: { id: item.productId },
+          where: {
+            id: item.productId,
+          },
+
           data: {
             stock: {
               increment: item.quantity,
@@ -162,11 +183,14 @@ export class OrdersService {
         });
       }
 
+      // 🔥 cancelar orden
       return tx.order.update({
         where: { id },
+
         data: {
           status: 'CANCELADO',
         },
+
         include: {
           items: true,
         },
@@ -174,6 +198,7 @@ export class OrdersService {
     });
   }
 
+  
   async updateStatus(id: number, status: OrderStatus) {
     return this.prisma.order.update({
       where: { id },

@@ -3,6 +3,11 @@ import {Injectable, NotFoundException, ForbiddenException} from '@nestjs/common'
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateSupportTicketDto } from './dto/create-support-ticket.dto';
 import { UpdateSupportTicketDto } from './dto/update-support-ticket.dto';
+import { SupportTicketsQueryDto } from './dto/support-tickets-query.dto';
+import { getPagination } from 'src/common/utils/pagination';
+import { buildSearch } from 'src/common/utils/search';
+import { buildSort } from 'src/common/utils/sort';
+import { buildMeta } from 'src/common/utils/meta';
 
 @Injectable()
 export class SupportTicketsService {
@@ -28,13 +33,49 @@ export class SupportTicketsService {
         });
     }
 
-    async findAll() {
-        return this.prisma.supportTicket.findMany({
+    async findAll(query: SupportTicketsQueryDto) {
+
+        const pagination = getPagination(
+            query.page,
+            query.limit,
+        );
+
+        const where = {
+            ...buildSearch(query.search, ['message']),
+
+            ...(query.status && {
+            status: query.status,
+            }),
+        };
+
+        const orderBy = buildSort(
+            'createdAt',
+            query.sort,
+        )
+
+        const tickets = await this.prisma.supportTicket.findMany({
+        ...pagination,
+        where,
+        orderBy,
+
         include: {
             user: true,
             order: true,
         },
         });
+
+        const total = await this.prisma.supportTicket.count({
+            where,
+        })
+
+        return{
+            data: tickets,
+            meta: buildMeta(
+            total,
+            query.page,
+            query.limit,
+            )
+        }
     }
 
     async findMyTickets(user: any) {

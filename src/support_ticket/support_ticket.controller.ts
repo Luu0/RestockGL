@@ -1,4 +1,4 @@
-import {Body, Controller, Get, Post, Patch, Delete, Param, UseGuards, Req} from '@nestjs/common';
+import {Body, Controller, Get, Post, Patch, Delete, Param, UseGuards, Req, Query} from '@nestjs/common';
 import {ApiTags, ApiBearerAuth, ApiOperation} from '@nestjs/swagger';
 import { Request } from 'express';
 
@@ -9,18 +9,19 @@ import { UpdateSupportTicketDto } from './dto/update-support-ticket.dto';
 import { JwtAuthGuard } from 'src/auth/common/jwt-auth.guard';
 import { RolesGuard } from 'src/common/roles.guard';
 import { Roles } from 'src/common/roles.decorator';
+import { SupportTicketsQueryDto } from './dto/support-tickets-query.dto';
 
 @ApiTags('SupportTickets')
 @Controller('support-tickets')
 export class SupportTicketsController {
-    constructor(private readonly service: SupportTicketsService) {}
+    constructor(private readonly supportTicketsService: SupportTicketsService) {}
 
     @ApiOperation({ summary: 'Crear ticket' })
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
     @Post()
     create(@Body() body: CreateSupportTicketDto, @Req() req: Request) {
-        return this.service.create(body, req.user);
+        return this.supportTicketsService.create(body, req.user);
     }
 
     @ApiOperation({ summary: 'Mis tickets' })
@@ -28,7 +29,7 @@ export class SupportTicketsController {
     @UseGuards(JwtAuthGuard)
     @Get('me')
     findMine(@Req() req: Request) {
-        return this.service.findMyTickets(req.user);
+        return this.supportTicketsService.findMyTickets(req.user);
     }
 
     @ApiOperation({ summary: 'Todos los tickets (admin)' })
@@ -36,8 +37,8 @@ export class SupportTicketsController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('admin')
     @Get()
-    findAll() {
-        return this.service.findAll();
+    findAll(@Query() query: SupportTicketsQueryDto) {
+    return this.supportTicketsService.findAll(query);
     }
 
     @ApiOperation({ summary: 'Ver ticket por ID' })
@@ -45,7 +46,7 @@ export class SupportTicketsController {
     @UseGuards(JwtAuthGuard)
     @Get(':id')
     findOne(@Param('id') id: string, @Req() req: Request) {
-        return this.service.findOne(Number(id), req.user);
+        return this.supportTicketsService.findOne(Number(id), req.user);
     }
 
     @ApiOperation({ summary: 'Actualizar estado (admin)' })
@@ -54,7 +55,7 @@ export class SupportTicketsController {
     @Roles('admin')
     @Patch(':id')
     update(@Param('id') id: string, @Body() body: UpdateSupportTicketDto) {
-        return this.service.update(Number(id), body);
+        return this.supportTicketsService.update(Number(id), body);
     }
 
     @ApiOperation({ summary: 'Eliminar ticket (admin)' })
@@ -63,6 +64,6 @@ export class SupportTicketsController {
     @Roles('admin')
     @Delete(':id')
     remove(@Param('id') id: string) {
-        return this.service.remove(Number(id));
+        return this.supportTicketsService.remove(Number(id));
     }
 }

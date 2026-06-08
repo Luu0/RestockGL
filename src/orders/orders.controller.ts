@@ -47,6 +47,8 @@ export class OrdersController {
 
   @ApiOperation({ summary: 'Obtener producto por ID' })
   @ApiParam({ name: 'id', example: 1 })
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.ordersService.findOne(Number(id));
@@ -55,8 +57,11 @@ export class OrdersController {
   @ApiOperation({ summary: 'Cancelar orden por ID' })
   @ApiParam({ name: 'id', example: 1 })
   @Patch(':id/cancel')
-  cancel(@Param('id') id: string) {
-    return this.ordersService.cancel(Number(id));
+  cancel(
+    @Param('id') id: string,
+    @Req() req: Request
+    ) {
+    return this.ordersService.cancel(Number(id), req.user as any);
   }
 
   @ApiBearerAuth()
