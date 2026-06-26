@@ -7,11 +7,12 @@ import { AuthModule } from './auth/auth.module';
 import { SuppliersModule } from './suppliers/suppliers.module';
 import { OrdersModule } from './orders/orders.module';
 import { SupportTicketModule } from './support_ticket/support_ticket.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
       ConfigModule.forRoot({ isGlobal: true }),
-      ProductsModule, UsersModule, PrismaModule, AuthModule, SuppliersModule, OrdersModule, SupportTicketModule
+      ProductsModule, UsersModule, PrismaModule, AuthModule, SuppliersModule, OrdersModule, SupportTicketModule, DashboardModule
     ],
     providers: [],
   // controllers: [AppController],
